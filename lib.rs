@@ -27,7 +27,14 @@ pub fn debug_extras(input: TokenStream) -> TokenStream {
         Some(parse_quote!(::std::fmt::Result)),
         |mut item| {
             item.map_constructable(|mut constructable| {
-                let full_path_name_string = path_to_string(constructable.get_constructor_path());
+                let mut path = constructable.get_constructor_path();
+                let mut new_segments = path.segments.clone();
+                while !new_segments.is_empty() {
+                    new_segments.pop();
+                }
+                new_segments.push(path.segments.pop().unwrap().value().clone());
+                path.segments = new_segments;
+                let full_path_name_string = path_to_string(path);
                 let name = LitStr::new(&full_path_name_string, Span::call_site());
 
                 let inline_tuple_attribute = constructable
